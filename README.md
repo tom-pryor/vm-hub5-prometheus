@@ -77,7 +77,7 @@ All settings are environment variables, overridable by an equivalent CLI flag.
 | `HUB_URL` | `--hub-url` | `https://192.168.100.1` | Base URL of the hub's cable modem API |
 | `LISTEN_ADDRESS` | `--listen-address` | `0.0.0.0:9938` | Address the exporter's HTTP server listens on |
 | `METRICS_PATH` | `--metrics-path` | `/metrics` | Path metrics are served on |
-| `SCRAPE_TIMEOUT` | `--scrape-timeout` | `5s` | Per-request timeout when calling the hub (accepts `ms`/`s`/`m`/`h` suffixes) |
+| `SCRAPE_TIMEOUT` | `--scrape-timeout` | `10s` | Per-request timeout when calling the hub (accepts `ms`/`s`/`m`/`h` suffixes). The Hub 5 can take several seconds to answer the first request on a fresh connection |
 | `INSECURE_SKIP_VERIFY` | `--insecure-skip-verify` | `true` | Skip TLS certificate verification (the hub uses a self-signed cert) |
 | `LOG_LEVEL` | `--log-level` | `info` | `tracing` log level |
 
@@ -98,10 +98,15 @@ docker build -t vm-prom .
 docker run --rm -p 9938:9938 -e HUB_URL=https://192.168.100.1 vm-prom
 ```
 
-Since the Hub 5's management IP (`192.168.100.1`) is only reachable when connected
-directly to the hub (e.g. running on a machine plugged into it, or with `--network
-host`), run the container with `--network host` if it can't otherwise reach that
-address.
+Since the Hub 5's management IP (`192.168.100.1`) is only reachable from a machine
+plugged directly into the hub, the Docker *host* needs a route to that address.
+Docker's default bridge network NATs outbound traffic through the host, so a
+container on the bridge network can reach the hub too, the same way it reaches the
+internet — no special networking needed. Only fall back to `--network host` if this
+Docker host itself has no route to the hub's subnet without borrowing the host's own
+network stack.
+
+A `docker-compose.yml` is included as a starting point.
 
 ### systemd
 
@@ -129,6 +134,16 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9938"]
 ```
+
+### Grafana dashboard
+
+`grafana/vm-prom-dashboard.json` is an importable dashboard covering both
+downstream and upstream: a table of each channel's latest stats, and time-series
+graphs of power, SNR, and RxMER (downstream) / power (upstream), plus per-channel
+corrected/uncorrected error counts (downstream) and T1-T4 timeout counts (upstream).
+
+To import: in Grafana, go to **Dashboards → New → Import**, upload the JSON file,
+and select your Prometheus data source when prompted.
 
 ## Development
 
