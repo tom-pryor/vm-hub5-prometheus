@@ -19,8 +19,11 @@ pub struct Config {
     #[arg(long, env = "METRICS_PATH", default_value = "/metrics")]
     pub metrics_path: String,
 
-    /// Timeout for each request made to the hub while scraping.
-    #[arg(long, env = "SCRAPE_TIMEOUT", default_value = "5s", value_parser = parse_duration)]
+    /// Timeout for each request made to the hub while scraping. The Hub 5 can
+    /// take several seconds to answer the first request on a fresh
+    /// connection (subsequent requests reusing a pooled connection are much
+    /// faster), so this needs enough headroom to cover that.
+    #[arg(long, env = "SCRAPE_TIMEOUT", default_value = "10s", value_parser = parse_duration)]
     pub scrape_timeout: Duration,
 
     /// Skip TLS certificate verification when talking to the hub (it presents
