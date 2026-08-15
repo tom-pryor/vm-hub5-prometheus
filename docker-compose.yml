@@ -1,0 +1,18 @@
+services:
+  vm-prom:
+    build: .
+    # image: ghcr.io/<you>/vm-prom:latest
+    container_name: vm-prom
+    restart: unless-stopped
+    environment:
+      HUB_URL: https://192.168.100.1
+      LISTEN_ADDRESS: 0.0.0.0:9938
+      # SCRAPE_TIMEOUT: 10s
+      # LOG_LEVEL: info
+    ports:
+      - "9938:9938"
+    # Docker's default bridge NATs outbound traffic through the host, so it
+    # can reach the hub's LAN-only management IP just like the host can.
+    # Only fall back to `network_mode: host` (dropping `ports:` above) if
+    # this Docker host itself has no route to the hub's subnet without
+    # borrowing the host's own network stack.
