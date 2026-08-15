@@ -1,7 +1,6 @@
 services:
   vm-prom:
-    build: .
-    # image: ghcr.io/tom-pryor/vm-hub5-prometheus:latest
+    image: ghcr.io/tom-pryor/vm-hub5-prometheus:latest
     container_name: vm-prom
     restart: unless-stopped
     environment:
