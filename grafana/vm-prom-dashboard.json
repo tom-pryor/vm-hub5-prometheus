@@ -1,0 +1,379 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0" },
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0" },
+    { "type": "panel", "id": "table", "name": "Table", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "row", "name": "Row", "version": "" }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Downstream",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Downstream Channels",
+      "description": "Latest reading per downstream channel. Fields a channel type doesn't report (e.g. frequency for ofdm) are blank.",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 1 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" } } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Locked" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": { "text": "Locked", "color": "green", "index": 0 },
+                      "0": { "text": "Unlocked", "color": "red", "index": 1 }
+                    }
+                  }
+                ]
+              },
+              { "id": "custom.displayMode", "value": "color-background" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_power_dbmv", "instant": true, "range": false, "format": "table" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_snr_db", "instant": true, "range": false, "format": "table" },
+        { "refId": "C", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_rxmer_db", "instant": true, "range": false, "format": "table" },
+        { "refId": "D", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_frequency_hz", "instant": true, "range": false, "format": "table" },
+        { "refId": "E", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_channel_width_hz", "instant": true, "range": false, "format": "table" },
+        { "refId": "F", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_corrected_errors_total", "instant": true, "range": false, "format": "table" },
+        { "refId": "G", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_uncorrected_errors_total", "instant": true, "range": false, "format": "table" },
+        { "refId": "H", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_lock_status", "instant": true, "range": false, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "labelsToFields", "options": {} },
+        { "id": "joinByField", "options": { "byField": "channel_id", "mode": "outer" } },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true, "instance": true, "job": true, "__name__": true,
+              "channel_type 2": true, "channel_type 3": true, "channel_type 4": true,
+              "channel_type 5": true, "channel_type 6": true, "channel_type 7": true, "channel_type 8": true,
+              "modulation 2": true, "modulation 3": true, "modulation 4": true,
+              "modulation 5": true, "modulation 6": true, "modulation 7": true, "modulation 8": true
+            },
+            "indexByName": {
+              "channel_id": 0,
+              "channel_type 1": 1,
+              "modulation 1": 2,
+              "Value #A": 3, "docsis_downstream_power_dbmv": 3,
+              "Value #B": 4, "docsis_downstream_snr_db": 4,
+              "Value #C": 5, "docsis_downstream_rxmer_db": 5,
+              "Value #D": 6, "docsis_downstream_frequency_hz": 6,
+              "Value #E": 7, "docsis_downstream_channel_width_hz": 7,
+              "Value #F": 8, "docsis_downstream_corrected_errors_total": 8,
+              "Value #G": 9, "docsis_downstream_uncorrected_errors_total": 9,
+              "Value #H": 10, "docsis_downstream_lock_status": 10
+            },
+            "renameByName": {
+              "channel_id": "Channel",
+              "channel_type 1": "Type",
+              "modulation 1": "Modulation",
+              "Value #A": "Power (dBmV)", "docsis_downstream_power_dbmv": "Power (dBmV)",
+              "Value #B": "SNR (dB)", "docsis_downstream_snr_db": "SNR (dB)",
+              "Value #C": "RxMER (dB)", "docsis_downstream_rxmer_db": "RxMER (dB)",
+              "Value #D": "Frequency (Hz)", "docsis_downstream_frequency_hz": "Frequency (Hz)",
+              "Value #E": "Channel Width (Hz)", "docsis_downstream_channel_width_hz": "Channel Width (Hz)",
+              "Value #F": "Corrected Errors", "docsis_downstream_corrected_errors_total": "Corrected Errors",
+              "Value #G": "Uncorrected Errors", "docsis_downstream_uncorrected_errors_total": "Uncorrected Errors",
+              "Value #H": "Locked", "docsis_downstream_lock_status": "Locked"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Downstream Power",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "pointSize": 5, "spanNulls": true, "axisLabel": "dBmV" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_power_dbmv", "legendFormat": "{{channel_id}} ({{channel_type}})", "instant": false, "range": true }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Downstream SNR",
+      "description": "sc_qam channels only — the hub does not report SNR for ofdm.",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "pointSize": 5, "spanNulls": true, "axisLabel": "dB" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_snr_db", "legendFormat": "{{channel_id}} ({{channel_type}})", "instant": false, "range": true }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Downstream RxMER",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "pointSize": 5, "spanNulls": true, "axisLabel": "dB" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_rxmer_db", "legendFormat": "{{channel_id}} ({{channel_type}})", "instant": false, "range": true }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Downstream Errors",
+      "description": "Raw cumulative corrected/uncorrected error counts as reported by the hub, per channel.",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 0, "pointSize": 5, "spanNulls": true, "axisLabel": "errors" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_corrected_errors_total", "legendFormat": "{{channel_id}} corrected", "instant": false, "range": true },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_downstream_uncorrected_errors_total", "legendFormat": "{{channel_id}} uncorrected", "instant": false, "range": true }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Upstream",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Upstream Channels",
+      "description": "Latest reading per upstream channel. Fields a channel type doesn't report (e.g. frequency for ofdma) are blank.",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" } } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Locked" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": { "text": "Locked", "color": "green", "index": 0 },
+                      "0": { "text": "Unlocked", "color": "red", "index": 1 }
+                    }
+                  }
+                ]
+              },
+              { "id": "custom.displayMode", "value": "color-background" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_power_dbmv", "instant": true, "range": false, "format": "table" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_frequency_hz", "instant": true, "range": false, "format": "table" },
+        { "refId": "C", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_symbol_rate_ksps", "instant": true, "range": false, "format": "table" },
+        { "refId": "D", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_channel_width_hz", "instant": true, "range": false, "format": "table" },
+        { "refId": "E", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t1_timeouts_total", "instant": true, "range": false, "format": "table" },
+        { "refId": "F", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t2_timeouts_total", "instant": true, "range": false, "format": "table" },
+        { "refId": "G", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t3_timeouts_total", "instant": true, "range": false, "format": "table" },
+        { "refId": "H", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t4_timeouts_total", "instant": true, "range": false, "format": "table" },
+        { "refId": "I", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_lock_status", "instant": true, "range": false, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "labelsToFields", "options": {} },
+        { "id": "joinByField", "options": { "byField": "channel_id", "mode": "outer" } },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true, "instance": true, "job": true, "__name__": true,
+              "channel_type 2": true, "channel_type 3": true, "channel_type 4": true, "channel_type 5": true,
+              "channel_type 6": true, "channel_type 7": true, "channel_type 8": true, "channel_type 9": true,
+              "modulation 2": true, "modulation 3": true, "modulation 4": true, "modulation 5": true,
+              "modulation 6": true, "modulation 7": true, "modulation 8": true, "modulation 9": true
+            },
+            "indexByName": {
+              "channel_id": 0,
+              "channel_type 1": 1,
+              "modulation 1": 2,
+              "Value #A": 3, "docsis_upstream_power_dbmv": 3,
+              "Value #B": 4, "docsis_upstream_frequency_hz": 4,
+              "Value #C": 5, "docsis_upstream_symbol_rate_ksps": 5,
+              "Value #D": 6, "docsis_upstream_channel_width_hz": 6,
+              "Value #E": 7, "docsis_upstream_t1_timeouts_total": 7,
+              "Value #F": 8, "docsis_upstream_t2_timeouts_total": 8,
+              "Value #G": 9, "docsis_upstream_t3_timeouts_total": 9,
+              "Value #H": 10, "docsis_upstream_t4_timeouts_total": 10,
+              "Value #I": 11, "docsis_upstream_lock_status": 11
+            },
+            "renameByName": {
+              "channel_id": "Channel",
+              "channel_type 1": "Type",
+              "modulation 1": "Modulation",
+              "Value #A": "Power (dBmV)", "docsis_upstream_power_dbmv": "Power (dBmV)",
+              "Value #B": "Frequency (Hz)", "docsis_upstream_frequency_hz": "Frequency (Hz)",
+              "Value #C": "Symbol Rate (ksps)", "docsis_upstream_symbol_rate_ksps": "Symbol Rate (ksps)",
+              "Value #D": "Channel Width (Hz)", "docsis_upstream_channel_width_hz": "Channel Width (Hz)",
+              "Value #E": "T1 Timeouts", "docsis_upstream_t1_timeouts_total": "T1 Timeouts",
+              "Value #F": "T2 Timeouts", "docsis_upstream_t2_timeouts_total": "T2 Timeouts",
+              "Value #G": "T3 Timeouts", "docsis_upstream_t3_timeouts_total": "T3 Timeouts",
+              "Value #H": "T4 Timeouts", "docsis_upstream_t4_timeouts_total": "T4 Timeouts",
+              "Value #I": "Locked", "docsis_upstream_lock_status": "Locked"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Upstream Power",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 38 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "pointSize": 5, "spanNulls": true, "axisLabel": "dBmV" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_power_dbmv", "legendFormat": "{{channel_id}} ({{channel_type}})", "instant": false, "range": true }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Upstream Timeouts",
+      "description": "Raw cumulative T1-T4 timeout counts as reported by the hub, per channel. T1/T2 are atdma only; T3/T4 apply to both atdma and ofdma.",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 38 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 0, "pointSize": 5, "spanNulls": true, "axisLabel": "timeouts" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t1_timeouts_total", "legendFormat": "{{channel_id}} t1", "instant": false, "range": true },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t2_timeouts_total", "legendFormat": "{{channel_id}} t2", "instant": false, "range": true },
+        { "refId": "C", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t3_timeouts_total", "legendFormat": "{{channel_id}} t3", "instant": false, "range": true },
+        { "refId": "D", "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }, "expr": "docsis_upstream_t4_timeouts_total", "legendFormat": "{{channel_id}} t4", "instant": false, "range": true }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["vm-prom", "docsis"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "vm-prom – DOCSIS Channels",
+  "uid": "vm-prom-docsis",
+  "version": 1,
+  "weekStart": ""
+}
