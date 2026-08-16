@@ -3,6 +3,7 @@ use std::sync::Arc;
 use clap::Parser;
 
 use vm_prom::config::Config;
+use vm_prom::eventlog::EventlogTracker;
 use vm_prom::hub::HubClient;
 use vm_prom::routes::{self, AppState};
 
@@ -23,6 +24,9 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState {
         hub,
         metrics_path: config.metrics_path.clone(),
+        eventlog_tracker: Arc::new(EventlogTracker::new()),
+        eventlog_log_level: config.eventlog_log_level,
+        scrape_fetches_eventlog: config.scrape_fetches_eventlog,
     };
 
     let app = routes::router(state);
@@ -31,6 +35,8 @@ async fn main() -> anyhow::Result<()> {
         address = %config.listen_address,
         metrics_path = %config.metrics_path,
         hub_url = %config.hub_url,
+        scrape_fetches_eventlog = %config.scrape_fetches_eventlog,
+        eventlog_log_level = %config.eventlog_log_level,
         "starting vm-prom"
     );
 

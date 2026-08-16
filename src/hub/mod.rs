@@ -2,7 +2,7 @@ pub mod models;
 
 use std::time::Duration;
 
-use models::{DownstreamResponse, UpstreamResponse};
+use models::{DownstreamResponse, EventlogResponse, UpstreamResponse};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -43,6 +43,18 @@ impl HubClient {
 
     pub async fn fetch_upstream(&self) -> Result<UpstreamResponse, HubError> {
         let url = format!("{}/rest/v1/cablemodem/upstream", self.base_url);
+        Ok(self
+            .http
+            .get(url)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
+
+    pub async fn fetch_eventlog(&self) -> Result<EventlogResponse, HubError> {
+        let url = format!("{}/rest/v1/cablemodem/eventlog", self.base_url);
         Ok(self
             .http
             .get(url)

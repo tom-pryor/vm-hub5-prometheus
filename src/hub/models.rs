@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DownstreamResponse {
@@ -114,6 +114,26 @@ pub struct OfdmaUpstreamChannel {
     pub lock_status: bool,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EventlogResponse {
+    pub eventlog: Vec<EventlogEntry>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EventlogEntry {
+    pub priority: String,
+    pub time: String,
+    pub message: String,
+}
+
+impl EventlogEntry {
+    /// Dedup key used to detect entries already seen on a previous fetch.
+    /// `priority` is intentionally excluded — see `src/eventlog.rs`.
+    pub fn dedup_key(&self) -> (&str, &str) {
+        (&self.time, &self.message)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -121,6 +141,7 @@ mod tests {
     // Real sample payloads captured from a Virgin Media Hub 5.
     const DOWNSTREAM_SAMPLE: &str = include_str!("../../tests/fixtures/downstream.json");
     const UPSTREAM_SAMPLE: &str = include_str!("../../tests/fixtures/upstream.json");
+    const EVENTLOG_SAMPLE: &str = include_str!("../../tests/fixtures/eventlog.json");
 
     #[test]
     fn parses_downstream_sample() {
@@ -201,6 +222,20 @@ mod tests {
         assert_eq!(first.symbol_rate, 5120.0);
         assert_eq!(first.modulation, "qam_64");
         assert!(first.lock_status);
+    }
+
+    #[test]
+    fn parses_eventlog_sample() {
+        let resp: EventlogResponse = serde_json::from_str(EVENTLOG_SAMPLE).unwrap();
+        assert_eq!(resp.eventlog.len(), 33);
+
+        let first = &resp.eventlog[0];
+        assert_eq!(first.priority, "notice");
+        assert_eq!(first.time, "2026-08-15T12:10:17.000Z");
+        assert!(first.message.contains("CM-STATUS"));
+
+        let last = resp.eventlog.last().unwrap();
+        assert_eq!(last.message, "GUI Login Status - Login Success from LAN interface");
     }
 
     #[test]

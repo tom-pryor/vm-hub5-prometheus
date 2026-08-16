@@ -34,6 +34,20 @@ pub struct Config {
     /// Log level (error, warn, info, debug, trace).
     #[arg(long, env = "LOG_LEVEL", default_value = "info")]
     pub log_level: String,
+
+    /// Also fetch the hub's eventlog on every scrape of METRICS_PATH, purely
+    /// for the side effect of logging newly-appeared entries (see
+    /// EVENTLOG_LOG_LEVEL). The eventlog itself is never turned into
+    /// Prometheus metrics, and a failed fetch here does not affect
+    /// docsis_scrape_success.
+    #[arg(long, env = "SCRAPE_FETCHES_EVENTLOG", default_value = "true")]
+    pub scrape_fetches_eventlog: bool,
+
+    /// Log level used when emitting a log event for each newly-appeared hub
+    /// eventlog entry. Independent of LOG_LEVEL and of the modem's own
+    /// per-entry priority field.
+    #[arg(long, env = "EVENTLOG_LOG_LEVEL", default_value = "info")]
+    pub eventlog_log_level: tracing::Level,
 }
 
 fn parse_duration(s: &str) -> Result<Duration, String> {

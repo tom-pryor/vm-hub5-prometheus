@@ -15,7 +15,10 @@ The Hub 5 exposes its cable modem stats over its LAN-only management interface a
 `vm-prom` fetches both on every scrape (no background polling or caching), maps the
 channels into Prometheus metrics, and returns them. If a hub request fails or times
 out, `/metrics` still returns `200 OK` with `docsis_scrape_success 0` so Prometheus
-sees a clean "exporter up, target down" signal rather than a failed scrape.
+sees a clean "exporter up, target down" signal rather than a failed scrape. The one
+exception to "no caching" is the eventlog dedup state described in
+[Events](#events), kept in memory across requests so the same hub event isn't logged
+twice.
 
 ### A note on OFDM/OFDMA units
 
@@ -68,6 +71,31 @@ Exporter health (unlabeled):
 | `docsis_scrape_success` | gauge (1/0) |
 | `docsis_scrape_duration_seconds` | gauge |
 
+## Events
+
+The Hub 5 also exposes a short rolling log of modem events (`GET
+/rest/v1/cablemodem/eventlog`) — CM-STATUS messages, ranging/timeout events, etc.
+The hub only retains a limited backlog (observed ~30-40 entries).
+
+`vm-prom` exposes this at `GET /events`, returning the hub's JSON unchanged. Unlike
+`/metrics`, a failed hub fetch here returns `502 Bad Gateway` — `/events` isn't a
+Prometheus scrape target, so there's no reason to mask the failure behind a `200`.
+
+Every time the eventlog is fetched — via `/events`, or via the `/metrics`-scrape
+side effect below — `vm-prom` diffs the fetched entries against the previous fetch
+(keyed on `time`+`message`) and logs one event per entry that's new since then,
+oldest first. On the very first fetch after the process starts, the entire backlog
+is logged as new. The level used is `EVENTLOG_LOG_LEVEL` (default `info`) —
+independent of `LOG_LEVEL` and of the modem's own per-entry `priority`.
+
+If `SCRAPE_FETCHES_EVENTLOG` is enabled (default: on), every `/metrics` scrape also
+triggers this eventlog fetch+diff in the background, purely for the logging side
+effect — it doesn't block or delay the `/metrics` response, the eventlog is never
+turned into Prometheus metrics, and a failed eventlog fetch during a scrape is
+logged as a warning without affecting `docsis_scrape_success`. If a previous
+scrape's eventlog fetch is still in flight when the next scrape happens, the new one
+is skipped rather than run concurrently.
+
 ## Configuration
 
 All settings are environment variables, overridable by an equivalent CLI flag.
@@ -80,6 +108,8 @@ All settings are environment variables, overridable by an equivalent CLI flag.
 | `SCRAPE_TIMEOUT` | `--scrape-timeout` | `10s` | Per-request timeout when calling the hub (accepts `ms`/`s`/`m`/`h` suffixes). The Hub 5 can take several seconds to answer the first request on a fresh connection |
 | `INSECURE_SKIP_VERIFY` | `--insecure-skip-verify` | `true` | Skip TLS certificate verification (the hub uses a self-signed cert) |
 | `LOG_LEVEL` | `--log-level` | `info` | `tracing` log level |
+| `SCRAPE_FETCHES_EVENTLOG` | `--scrape-fetches-eventlog` | `true` | Also fetch the hub's eventlog on every `/metrics` scrape, purely to log newly-appeared entries (see [Events](#events)) — no new Prometheus metrics, no effect on scrape success |
+| `EVENTLOG_LOG_LEVEL` | `--eventlog-log-level` | `info` | `tracing` level used when logging newly-appeared hub eventlog entries |
 
 ## Running
 
